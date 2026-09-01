@@ -1,0 +1,14 @@
+{
+  "host": "0.0.0.0",
+  "port": 45813,
+  "monitor_index": 1,
+  "tile": 128,
+  "quality": 70,
+  "target_fps": 30,
+  "scale_pct": 100,
+  "received_dir": "C:/SPECTER/received",
+  "outbox_dir": "C:/SPECTER/outbox",
+  "sent_dir": "C:/SPECTER/outbox/_sent",
+  "allow_only_ip": "",
+  "idle_full_refresh_sec": 3
+}

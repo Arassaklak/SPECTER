@@ -1,0 +1,37 @@
+# XcodeGen spec — lets us generate SPECTER.xcodeproj from source with no hand-built
+# project file, so a cloud macOS runner can build the app without you opening Xcode.
+name: SPECTER
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+targets:
+  SPECTER:
+    type: application
+    platform: iOS
+    sources:
+      - path: SPECTER/Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.specter   # change to something unique to you
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"                     # iPhone + iPad
+        SWIFT_VERSION: "5.0"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    info:
+      path: SPECTER/Generated-Info.plist
+      properties:
+        NSLocalNetworkUsageDescription: "SPECTER connects to your PC on the local network to mirror and control its screen."
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
