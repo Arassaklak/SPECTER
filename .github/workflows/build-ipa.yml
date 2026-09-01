@@ -1,0 +1,66 @@
+name: build-ipa
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Show repo layout
+        run: |
+          echo "== xcode =="; xcodebuild -version
+          echo "== project.yml locations =="; find . -name project.yml -not -path '*/.*' || true
+
+      - name: Locate iOS project dir
+        id: loc
+        run: |
+          F=$(find . -name project.yml -not -path '*/.*' | head -n1)
+          if [ -z "$F" ]; then echo "::error::ios/project.yml not found in repo"; exit 1; fi
+          D=$(dirname "$F")
+          echo "dir=$D" >> "$GITHUB_OUTPUT"
+          echo "Using iOS dir: $D"
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ${{ steps.loc.outputs.dir }}
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ${{ steps.loc.outputs.dir }}
+        run: |
+          xcodebuild \
+            -project SPECTER.xcodeproj \
+            -scheme SPECTER \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package .ipa
+        working-directory: ${{ steps.loc.outputs.dir }}
+        run: |
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' | head -n1)
+          test -d "$APP" || { echo "::error::built .app not found"; exit 1; }
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qry SPECTER-unsigned.ipa Payload
+          ls -lh SPECTER-unsigned.ipa
+
+      - name: Upload .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SPECTER-unsigned-ipa
+          path: ${{ steps.loc.outputs.dir }}/SPECTER-unsigned.ipa
+          if-no-files-found: error
